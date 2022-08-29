@@ -9,7 +9,7 @@ For processing ndjson this project has been used:
 https://github.com/canjs/can-ndjson-stream
 
 # Usage
-Checkout the backend, add @CrossOrigin() to the controller, and start it up.
+Checkout the backend, and start it up.
 
 Start this project:
 ```
