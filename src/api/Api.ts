@@ -59,6 +59,48 @@ export const useElementsUpdate = (): UseQueryResult<Row[], unknown> => {
   });
 };
 
+interface ResultAndCancel {
+  result: UseQueryResult<Row[], unknown>,
+  abort: AbortController,
+}
+
+export const useElementsUpdateCancel = (): ResultAndCancel => {
+  const queryClient = useQueryClient();
+  const queryKey = "elements_cancel"
+
+  const abort = new AbortController()
+  
+  const result = useQuery<Row[]>([queryKey], async () => {
+    const response = await fetch("http://localhost:8080", {
+      headers: {
+        accept: "application/x-ndjson",
+      },
+      signal: abort.signal,
+    });
+    const ndjson = ndjsonStream(response.body);
+    const reader = ndjson.getReader();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      // Update state
+      updateData(queryClient, queryKey, value, (r1, r2) => {
+        return r1.seqNo === r2.seqNo;
+      });
+    }
+    reader.releaseLock();
+    const data = queryClient.getQueryData<Row[]>([queryKey]);
+    return Array.isArray(data) ? data : [];
+  });
+  return {
+    result: result,
+    abort: abort,
+  }
+};
+
 const appendData = (queryClient: QueryClient, queryKey: string, data: Row) => {
   queryClient.setQueryData([queryKey], (oldData: Row[] | undefined) => {
     return Array.isArray(oldData) ? [...oldData, data] : [data];

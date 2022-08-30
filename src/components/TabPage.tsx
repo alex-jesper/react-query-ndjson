@@ -6,6 +6,7 @@ import ClassicElements from './ClassicElements';
 import React from 'react';
 import NdJsonElements from './NdJsonElements';
 import NdJsonElementsUpdate from './NdJsonElementsUpdate';
+import NdJsonElementsCancel from './NdJsonElementsCancel';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -44,10 +45,11 @@ export const TabPage: FC = () => {
         <Box>
             <Box>
                 <Tabs value={value} onChange={handleChange}>
-                    <Tab label="Home" />
-                    <Tab label="Classic" />
+                    <Tab label="HOME" />
+                    <Tab label="CLASSIC" />
                     <Tab label="NDJSON" />
                     <Tab label="NDJSON UPDATE" />
+                    <Tab label="NDJSON CANCEL" />
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
@@ -61,6 +63,9 @@ export const TabPage: FC = () => {
             </TabPanel>
             <TabPanel value={value} index={3}>
                 <NdJsonElementsUpdate />
+            </TabPanel>
+            <TabPanel value={value} index={4}>
+                <NdJsonElementsCancel />
             </TabPanel>
         </Box>
     )
