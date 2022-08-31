@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react'
+import { FC } from 'react'
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody'
 import TableCell from '@mui/material/TableCell'
@@ -10,17 +10,7 @@ import { Typography } from '@mui/material'
 import { useElementsUpdateCancel } from '../api/Api';
 
 export const NdJsonElementsCancel: FC = () => {
-    const { result, abort } = useElementsUpdateCancel()
-    const data = result.data
-
-    useEffect(() => {
-        console.log("Is initially aborted: " + abort.signal.aborted)
-        return () => {
-            console.log("Unmounted: " + abort.signal.aborted)
-            abort.abort()
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    const { data } = useElementsUpdateCancel()
 
     return (
         <Box>
