@@ -7,10 +7,10 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Box from '@mui/material/Box'
 import { Typography } from '@mui/material'
-import { useElements } from '../api/Api';
+import { useElements, appendData } from '../api/Api';
 
 export const NdJsonElements: FC = () => {
-    const { data } = useElements()
+    const { data } = useElements(appendData)
 
     return (
         <Box>

@@ -7,7 +7,7 @@ import {
 } from "react-query";
 const ndjsonStream = require("can-ndjson-stream");
 
-export const useElements = (): UseQueryResult<Row[], unknown> => {
+export const useElements = (updater: (exisitingData: Row[] | undefined, newElement: Row) => Row[]): UseQueryResult<Row[], unknown> => {
   const queryClient = useQueryClient();
   const queryKey = "elements";
   return useQuery<Row[]>([queryKey], async ({ signal }) => {
@@ -26,36 +26,9 @@ export const useElements = (): UseQueryResult<Row[], unknown> => {
         break;
       }
 
-      appendData(queryClient, queryKey, value);
-    }
-    reader.releaseLock();
-    const data = queryClient.getQueryData<Row[]>([queryKey]);
-    return Array.isArray(data) ? data : [];
-  });
-};
-
-export const useElementsUpdate = (): UseQueryResult<Row[], unknown> => {
-  const queryClient = useQueryClient();
-  const queryKey = "elements_update";
-  return useQuery<Row[]>([queryKey], async ({ signal }) => {
-    const response = await fetch("http://localhost:8080", {
-      headers: {
-        accept: "application/x-ndjson",
-      },
-      signal: signal,
-    });
-    const ndjson = ndjsonStream(response.body);
-    const reader = ndjson.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-
       // Update state
-      updateData(queryClient, [queryKey], value, (r1, r2) => {
-        return r1.seqNo === r2.seqNo;
+      queryClient.setQueryData([queryKey], (oldData: Row[] | undefined) => {
+        return updater(oldData, value);
       });
     }
     reader.releaseLock();
@@ -64,100 +37,25 @@ export const useElementsUpdate = (): UseQueryResult<Row[], unknown> => {
   });
 };
 
-export const useElementsUpdateCancel = (): UseQueryResult<Row[], unknown> => {
-  const queryClient = useQueryClient();
-  const queryKey = "elements_cancel";
-  const queryCacheKey = queryKey + "_cache";
-
-  return useQuery<Row[]>([queryKey], async ({ signal }) => {
-    // Install cache
-    const cachedData = queryClient.getQueryData<Row[]>([queryCacheKey]);
-    queryClient.setQueryData([queryKey], () => {
-      return cachedData;
-    });
-
-    // Fetch all elements
-    const response = await fetch("http://localhost:8080", {
-      headers: {
-        accept: "application/x-ndjson",
-      },
-      signal: signal,
-    });
-    const ndjson = ndjsonStream(response.body);
-    const reader = ndjson.getReader();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-
-      // Update state
-      updateData(queryClient, [queryKey, queryCacheKey], value, (r1, r2) => {
-        return r1.seqNo === r2.seqNo;
-      });
-    }
-    reader.releaseLock();
-    const data = queryClient.getQueryData<Row[]>([queryKey]);
-    return Array.isArray(data) ? data : [];
-  });
+export const appendData = (exisitingData: Row[] | undefined, newElement: Row) => {
+    return Array.isArray(exisitingData) ? [...exisitingData, newElement] : [newElement];
 };
 
-const appendData = (queryClient: QueryClient, queryKey: string, data: Row) => {
-  queryClient.setQueryData([queryKey], (oldData: Row[] | undefined) => {
-    return Array.isArray(oldData) ? [...oldData, data] : [data];
-  });
-};
-
-const updateData = (
-  queryClient: QueryClient,
-  queryKeys: string[],
-  data: Row,
-  identityFn: (r1: Row, r2: Row) => Boolean
-) => {
-  queryKeys.forEach((queryKey) => {
-    queryClient.setQueryData([queryKey], (oldData: Row[] | undefined) => {
-      if (!Array.isArray(oldData)) {
+export const updateData = (exisitingData: Row[] | undefined, newElement: Row) => {
+      if (!Array.isArray(exisitingData)) {
         // First element
-        return [data];
+        return [newElement];
       } else {
-        const index = firstIndexMatches(oldData, data, identityFn);
+        const index = firstIndexMatches(exisitingData, newElement, rowSequenceNumberIdentity);
         if (index === undefined) {
           // New element
-          return [...oldData, data];
+          return [...exisitingData, newElement];
         } else {
           // Replace existing element
-          oldData[index] = data;
-          return oldData;
+          exisitingData[index] = newElement;
+          return exisitingData;
         }
       }
-    });
-  });
-};
-
-const updateData2 = (
-  queryClient: QueryClient,
-  queryKeys: string[],
-  data: Row,
-  identityFn: (r1: Row, r2: Row) => Boolean
-) => {
-  // TODO: Understand queryKeys, and setQueryData vs setQueriesData
-  queryClient.setQueryData(queryKeys, (oldData: Row[] | undefined) => {
-    if (!Array.isArray(oldData)) {
-      // First element
-      return [data];
-    } else {
-      const index = firstIndexMatches(oldData, data, identityFn);
-      if (index === undefined) {
-        // New element
-        return [...oldData, data];
-      } else {
-        // Replace existing element
-        oldData[index] = data;
-        return oldData;
-      }
-    }
-  });
 };
 
 const firstIndexMatches = (
@@ -173,3 +71,7 @@ const firstIndexMatches = (
   }
   return undefined;
 };
+
+const rowSequenceNumberIdentity = (r1: Row, r2: Row) => {
+  return r1.seqNo === r2.seqNo;
+}

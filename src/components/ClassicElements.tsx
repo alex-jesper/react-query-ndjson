@@ -10,7 +10,7 @@ import { Row } from '../model/Row'
 import Typography from '@mui/material/Typography';
 
 export const ClassicElements: FC = () => {
-    const { data } = useQuery('elements', fetchElements)
+    const { data } = useQuery('classic_elements', fetchElements)
     return (
         <div>
             <Typography variant="h4">

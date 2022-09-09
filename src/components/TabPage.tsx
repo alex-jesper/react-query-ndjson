@@ -4,9 +4,8 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import ClassicElements from './ClassicElements';
 import React from 'react';
-import NdJsonElements from './NdJsonElements';
 import NdJsonElementsUpdate from './NdJsonElementsUpdate';
-import NdJsonElementsCancel from './NdJsonElementsCancel';
+import NdJsonElements from './NdJsonElements';
 
 interface TabPanelProps {
     children?: React.ReactNode;
@@ -49,7 +48,6 @@ export const TabPage: FC = () => {
                     <Tab label="CLASSIC" />
                     <Tab label="NDJSON" />
                     <Tab label="NDJSON UPDATE" />
-                    <Tab label="NDJSON CANCEL" />
                 </Tabs>
             </Box>
             <TabPanel value={value} index={0}>
@@ -63,9 +61,6 @@ export const TabPage: FC = () => {
             </TabPanel>
             <TabPanel value={value} index={3}>
                 <NdJsonElementsUpdate />
-            </TabPanel>
-            <TabPanel value={value} index={4}>
-                <NdJsonElementsCancel />
             </TabPanel>
         </Box>
     )
