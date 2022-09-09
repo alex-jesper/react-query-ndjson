@@ -1,12 +1,10 @@
 import Row from "../model/Row";
-import {
-  useQuery,
-  useQueryClient,
-  UseQueryResult,
-} from "react-query";
+import { useQuery, useQueryClient, UseQueryResult } from "react-query";
 const ndjsonStream = require("can-ndjson-stream");
 
-export const useElements = (updater: (exisitingData: Row[] | undefined, newElement: Row) => Row[]): UseQueryResult<Row[], unknown> => {
+export const useElements = (
+  updater: (exisitingData: Row[] | undefined, newElement: Row) => Row[]
+): UseQueryResult<Row[], unknown> => {
   const queryClient = useQueryClient();
   const queryKey = "elements";
   return useQuery<Row[]>([queryKey], async ({ signal }) => {
@@ -36,25 +34,37 @@ export const useElements = (updater: (exisitingData: Row[] | undefined, newEleme
   });
 };
 
-export const appendData = (exisitingData: Row[] | undefined, newElement: Row) => {
-    return Array.isArray(exisitingData) ? [...exisitingData, newElement] : [newElement];
+export const appendData = (
+  exisitingData: Row[] | undefined,
+  newElement: Row
+) => {
+  return Array.isArray(exisitingData)
+    ? [...exisitingData, newElement]
+    : [newElement];
 };
 
-export const updateData = (exisitingData: Row[] | undefined, newElement: Row) => {
-      if (!Array.isArray(exisitingData)) {
-        // First element
-        return [newElement];
-      } else {
-        const index = firstIndexMatches(exisitingData, newElement, rowSequenceNumberIdentity);
-        if (index === undefined) {
-          // New element
-          return [...exisitingData, newElement];
-        } else {
-          // Replace existing element
-          exisitingData[index] = newElement;
-          return exisitingData;
-        }
-      }
+export const updateData = (
+  exisitingData: Row[] | undefined,
+  newElement: Row
+) => {
+  if (!Array.isArray(exisitingData)) {
+    // First element
+    return [newElement];
+  } else {
+    const index = firstIndexMatches(
+      exisitingData,
+      newElement,
+      rowSequenceNumberIdentity
+    );
+    if (index === undefined) {
+      // New element
+      return [...exisitingData, newElement];
+    } else {
+      // Replace existing element
+      exisitingData[index] = newElement;
+      return exisitingData;
+    }
+  }
 };
 
 const firstIndexMatches = (
@@ -73,4 +83,4 @@ const firstIndexMatches = (
 
 const rowSequenceNumberIdentity = (r1: Row, r2: Row) => {
   return r1.seqNo === r2.seqNo;
-}
+};
